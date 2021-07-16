@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="https://fonts.loli.net/css?family=Roboto Mono:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"jycoder.club","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":true,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="AOP（Aspect Oriented Programming）面向切面编程，是针对面向对象编程的一种补充，同时也是Spring中第二个最核心的功能。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spring AOP">
+<meta property="og:url" content="https://jycoder.club/2021/06/29/Spring-AOP/index.html">
+<meta property="og:site_name" content="吉永超">
+<meta property="og:description" content="AOP（Aspect Oriented Programming）面向切面编程，是针对面向对象编程的一种补充，同时也是Spring中第二个最核心的功能。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://gitee.com/ji_yong_chao/blog-img/raw/master/img/20210712104931.png">
+<meta property="og:image" content="https://gitee.com/ji_yong_chao/blog-img/raw/master/img/20210714132854.png">
+<meta property="article:published_time" content="2021-06-28T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-07-16T11:03:27.659Z">
+<meta property="article:author" content="吉永超">
+<meta property="article:tag" content="Spring">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://gitee.com/ji_yong_chao/blog-img/raw/master/img/20210712104931.png">
+
+<link rel="canonical" href="https://jycoder.club/2021/06/29/Spring-AOP/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Spring AOP | 吉永超</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">吉永超</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/jiyongchao-qf" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jycoder.club/2021/06/29/Spring-AOP/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="吉永超">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="吉永超">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Spring AOP
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-06-29 00:00:00" itemprop="dateCreated datePublished" datetime="2021-06-29T00:00:00+08:00">2021-06-29</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-07-16 19:03:27" itemprop="dateModified" datetime="2021-07-16T19:03:27+08:00">2021-07-16</time>
+              </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>22k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>20 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>AOP（Aspect Oriented Programming）面向切面编程，是针对面向对象编程的一种补充，同时也是Spring中第二个最核心的功能。</p>
+<span id="more"></span>
+
+<h1 id="Spring-AOP总览"><a href="#Spring-AOP总览" class="headerlink" title="Spring AOP总览"></a>Spring AOP总览</h1><h2 id="知识储备"><a href="#知识储备" class="headerlink" title="知识储备"></a>知识储备</h2><h3 id="Java-基础部分"><a href="#Java-基础部分" class="headerlink" title="Java 基础部分"></a>Java 基础部分</h3><ul>
+<li>Java 类加载器</li>
+<li>Java 动态代理</li>
+<li>Java 反射</li>
+<li>字节码框架：ASM、CGLB</li>
+</ul>
+<p>类加载器的示例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ClassLoaderDemo</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();</span><br><span class="line">        System.out.println(classLoader);</span><br><span class="line"></span><br><span class="line">        ClassLoader parent = classLoader;</span><br><span class="line">        <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</span><br><span class="line">            parent = parent.getParent();</span><br><span class="line">            <span class="keyword">if</span> (parent == <span class="keyword">null</span>) &#123;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            System.out.println(parent);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，这里我们使用的其实就是AppClassLoader，而AppClassLoader又继承了URLClassLoader，因此在使用loadClass方法加载类文件的时候，通过我们只需要传递类全名即可，而无需获取全路径。</p>
+<p>关于字节码框架部分，Spring内连了ASM框架。</p>
+<p><img src="https://gitee.com/ji_yong_chao/blog-img/raw/master/img/20210712104931.png" alt="image-20210712104930912"></p>
+<h3 id="OOP-部分"><a href="#OOP-部分" class="headerlink" title="OOP 部分"></a>OOP 部分</h3><ul>
+<li>封装</li>
+<li>继承</li>
+<li>多态</li>
+</ul>
+<h3 id="GOF23-设计模式"><a href="#GOF23-设计模式" class="headerlink" title="GOF23 设计模式"></a>GOF23 设计模式</h3><p>创建模式：</p>
+<ul>
+<li>抽象工程模式</li>
+<li>构建器模式</li>
+<li>工厂方法模式</li>
+<li>原型模式</li>
+<li>单例模式</li>
+</ul>
+<p>结构模式：</p>
+<ul>
+<li>适配器模式</li>
+<li>桥接模式</li>
+<li>组合模式</li>
+<li>装饰器模式</li>
+<li>门面模式</li>
+<li>亨元模式</li>
+<li>代理模式</li>
+</ul>
+<p>行为模式：</p>
+<ul>
+<li>模板方法模式</li>
+<li>中继器模式</li>
+<li>责任链模式</li>
+<li>观察者模式</li>
+<li>策略模式</li>
+<li>命令模式</li>
+<li>状态模式</li>
+<li>访问者模式</li>
+<li>解释器模式、迭代器模式、备忘录模式</li>
+</ul>
+<h3 id="Spring-核心基础"><a href="#Spring-核心基础" class="headerlink" title="Spring 核心基础"></a>Spring 核心基础</h3><ul>
+<li>Spring IoC容器</li>
+<li>Spring Bean生命周期</li>
+<li>Spring 配置元信息</li>
+<li>Spring 事件</li>
+<li>Spring 注解</li>
+</ul>
+<h2 id="OOP局限性"><a href="#OOP局限性" class="headerlink" title="OOP局限性"></a>OOP局限性</h2><p>Java OOP存在哪些局限性？</p>
+<ul>
+<li>静态化语言：类结构一旦定义，不容易被修改</li>
+<li>侵入性扩展：通过继承和组合组织新的类结构</li>
+</ul>
+<blockquote>
+<p>静态语言即强类型语言，是指在编译时变量的数据类型即可确定的语言，典型的代表有C++、Java、Delphi、C#等。</p>
+</blockquote>
+<h2 id="AOP常见使用场景"><a href="#AOP常见使用场景" class="headerlink" title="AOP常见使用场景"></a>AOP常见使用场景</h2><h3 id="日志场景"><a href="#日志场景" class="headerlink" title="日志场景"></a>日志场景</h3><ul>
+<li>诊断上下文，如：log4j或logback中的MDC</li>
+<li>辅助信息，如：方法执行时间</li>
+</ul>
+<h3 id="统计场景"><a href="#统计场景" class="headerlink" title="统计场景"></a>统计场景</h3><ul>
+<li>方法调用次数</li>
+<li>执行异常次数</li>
+<li>数据抽样</li>
+<li>数值累加</li>
+</ul>
+<h3 id="安防场景"><a href="#安防场景" class="headerlink" title="安防场景"></a>安防场景</h3><ul>
+<li>熔断，如：Netflix Hystrix</li>
+<li>限流和降级：如：Ablibba Sentinel</li>
+<li>认证和授权，如：Spring Security</li>
+<li>监控，如JMX</li>
+</ul>
+<h3 id="性能场景"><a href="#性能场景" class="headerlink" title="性能场景"></a>性能场景</h3><ul>
+<li>缓存，如Spring Cache</li>
+<li>超时控制</li>
+</ul>
+<h2 id="AOP概念"><a href="#AOP概念" class="headerlink" title="AOP概念"></a>AOP概念</h2><ul>
+<li>切面（Aspect）：一个关注点的模块化，在Spring AOP中。</li>
+<li>连接点（Join Point）：在程序执行过程中某个特定的点，比如方法调用的时候或异常处理的时候。</li>
+<li>通知（Advice）：在切面的某个特定的连接点上执行的动作。</li>
+<li>切入点（Pointcut）：匹配连接点的断言，通知和一个切入点表达式关联，并在满足这个切入点的连接点上运行。</li>
+<li>织入（Weaving）：把切面连接到其他应用程序类型或者对象上，并创建一个被通知的对象。</li>
+</ul>
+<h2 id="Java-AOP设计模式"><a href="#Java-AOP设计模式" class="headerlink" title="Java AOP设计模式"></a>Java AOP设计模式</h2><p>代理模式：静态和动态代理</p>
+<p>判断模式：类、方法、注解、参数、异常….</p>
+<p>拦截模式：前置、后置、返回、异常</p>
+<h2 id="代理模式"><a href="#代理模式" class="headerlink" title="代理模式"></a>代理模式</h2><p>Java静态代理的实现方式：</p>
+<ul>
+<li>常用OOP继承和组合相结合</li>
+</ul>
+<p>Java动态代理的实现方式：</p>
+<ul>
+<li>JDK动态代理</li>
+<li>字节码提升，如CGLIB</li>
+<li>AspectJ</li>
+</ul>
+<p>无论是静态代理还是动态代理都是基于接口，首先定义一个接口：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">EchoService</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function">String <span class="title">echo</span><span class="params">(String message)</span> <span class="keyword">throws</span> NullPointerException</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>编写这个接口的默认实现：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DefaultEchoService</span> <span class="keyword">implements</span> <span class="title">EchoService</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">echo</span><span class="params">(String message)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;[ECHO]&quot;</span> + message;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>静态代理类：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ProxyEchoService</span> <span class="keyword">implements</span> <span class="title">EchoService</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> EchoService echoService;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">ProxyEchoService</span><span class="params">(EchoService echoService)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.echoService = echoService;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">echo</span><span class="params">(String message)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">long</span> startTime = System.currentTimeMillis();</span><br><span class="line">        String result = echoService.echo(message);</span><br><span class="line">        <span class="keyword">long</span> costTime = System.currentTimeMillis() - startTime;</span><br><span class="line">        System.out.println(<span class="string">&quot;echo方法执行时间: &quot;</span> + costTime);</span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>使用静态代理类的示例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">StaticProxyDemo</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        ProxyEchoService proxyEchoService = <span class="keyword">new</span> ProxyEchoService(<span class="keyword">new</span> DefaultEchoService());</span><br><span class="line">        proxyEchoService.echo(<span class="string">&quot;hello world&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>动态代理的示例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">JdkDynamicProxyDemo</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();</span><br><span class="line">        Object proxy = Proxy.newProxyInstance(classLoader, <span class="keyword">new</span> Class[]&#123;EchoService.class&#125;, <span class="keyword">new</span> InvocationHandler() &#123;</span><br><span class="line"></span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> Object <span class="title">invoke</span><span class="params">(Object proxy, Method method, Object[] args)</span> <span class="keyword">throws</span> Throwable </span>&#123;</span><br><span class="line">                <span class="keyword">if</span> (EchoService.class.isAssignableFrom(method.getDeclaringClass())) &#123;</span><br><span class="line">                    ProxyEchoService echoService = <span class="keyword">new</span> ProxyEchoService(<span class="keyword">new</span> DefaultEchoService());</span><br><span class="line">                    <span class="keyword">return</span> echoService.echo((String) args[<span class="number">0</span>]);</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">        EchoService echoService = (EchoService) proxy;</span><br><span class="line">        echoService.echo(<span class="string">&quot;hello world&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="判断模式"><a href="#判断模式" class="headerlink" title="判断模式"></a>判断模式</h2><p>判断来源：</p>
+<p>类型（Class）、方法（Method）、注解（Annotation）、参数（Parameter）、异常（Exception）</p>
+<p>在EchoService#echo中抛出一个异常：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">EchoService</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function">String <span class="title">echo</span><span class="params">(String message)</span> <span class="keyword">throws</span> NullPointerException</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>判断模式的示例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TargetFilterDemo</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> ClassNotFoundException </span>&#123;</span><br><span class="line">        String targetClassName = <span class="string">&quot;org.jyc.thinking.in.spring.aop.overview.EchoService&quot;</span>;</span><br><span class="line">        <span class="comment">// 获取当前线程ClassLoader</span></span><br><span class="line">        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();</span><br><span class="line">        <span class="comment">// 获取目标类</span></span><br><span class="line">        Class&lt;?&gt; targetClass = classLoader.loadClass(targetClassName);</span><br><span class="line">        <span class="comment">// 过滤名称</span></span><br><span class="line">        Method method = ReflectionUtils.findMethod(targetClass, <span class="string">&quot;echo&quot;</span>, String.class);</span><br><span class="line">        System.out.println(method);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 查找方法throws类型为 NullPointerException</span></span><br><span class="line">        ReflectionUtils.doWithMethods(targetClass, method1 -&gt; &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;仅抛出NullPointerException的方法为：&quot;</span> + method1);</span><br><span class="line">        &#125;, method2 -&gt; &#123;</span><br><span class="line">            Class&lt;?&gt;[] parameterTypes = method2.getParameterTypes();</span><br><span class="line">            Class&lt;?&gt;[] exceptionTypes = method2.getExceptionTypes();</span><br><span class="line">            <span class="comment">// 异常列表长度为1并且异常类型为NullPointerException，参数列表为1并且，参数类型为String的方法</span></span><br><span class="line">            <span class="keyword">return</span> exceptionTypes.length == <span class="number">1</span> &amp;&amp; NullPointerException.class.equals(exceptionTypes[<span class="number">0</span>])</span><br><span class="line">                    &amp;&amp; parameterTypes.length == <span class="number">1</span> &amp;&amp; String.class.equals(parameterTypes[<span class="number">0</span>]);</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="拦截模式"><a href="#拦截模式" class="headerlink" title="拦截模式"></a>拦截模式</h2><p>拦截类型大致分为三种：</p>
+<ul>
+<li>前置拦截（Before）</li>
+<li>后置拦截（After）</li>
+<li>异常拦截（Exception）</li>
+</ul>
+<p>定义前置拦截器：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">BeforeInterceptor</span> </span>&#123;</span><br><span class="line">    <span class="function">Object <span class="title">before</span><span class="params">(Object proxy, Method method,Object[] args)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>定义后置拦截器：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">FinallyInterceptor</span> </span>&#123;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> returnResult 方法的返回结果</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function">Object <span class="title">finalize</span><span class="params">(Object proxy, Method method, Object[] args, Object returnResult)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>定义异常拦截器：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">FinallyInterceptor</span> </span>&#123;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> returnResult 方法的返回结果</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function">Object <span class="title">finalize</span><span class="params">(Object proxy, Method method, Object[] args, Object returnResult)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>使用以上拦截器的示例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AopInterceptorDemo</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args2)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 前置模式 + 后置模式</span></span><br><span class="line">        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();</span><br><span class="line">        Object proxy2 = Proxy.newProxyInstance(classLoader, <span class="keyword">new</span> Class[]&#123;EchoService.class&#125;, (proxy, method, args) -&gt; &#123;</span><br><span class="line">            <span class="keyword">if</span> (EchoService.class.isAssignableFrom(method.getDeclaringClass())) &#123;</span><br><span class="line">                <span class="comment">// 前置拦截器</span></span><br><span class="line">                BeforeInterceptor beforeInterceptor = <span class="keyword">new</span> BeforeInterceptor() &#123;</span><br><span class="line">                    <span class="meta">@Override</span></span><br><span class="line">                    <span class="function"><span class="keyword">public</span> Object <span class="title">before</span><span class="params">(Object proxy, Method method, Object[] args)</span> </span>&#123;</span><br><span class="line">                        <span class="keyword">return</span> System.currentTimeMillis();</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;;</span><br><span class="line">                Long startTime = <span class="number">0L</span>;</span><br><span class="line">                Long endTime = <span class="number">0L</span>;</span><br><span class="line">                Object result = <span class="keyword">null</span>;</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    <span class="comment">// 前置拦截</span></span><br><span class="line">                    startTime = (Long) beforeInterceptor.before(proxy, method, args);</span><br><span class="line">                    EchoService echoService = <span class="keyword">new</span> DefaultEchoService();</span><br><span class="line">                    result = echoService.echo((String) args[<span class="number">0</span>]);</span><br><span class="line">                    <span class="comment">// 方法执行后置拦截器</span></span><br><span class="line">                    AfterReturnInterceptor afterReturnInterceptor = <span class="keyword">new</span> AfterReturnInterceptor() &#123;</span><br><span class="line">                        <span class="meta">@Override</span></span><br><span class="line">                        <span class="function"><span class="keyword">public</span> Object <span class="title">after</span><span class="params">(Object proxy, Method method, Object[] args, Object returnResult)</span> </span>&#123;</span><br><span class="line">                            <span class="keyword">return</span> System.currentTimeMillis();</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;;</span><br><span class="line">                    endTime = (Long) afterReturnInterceptor.after(proxy, method, args, result);</span><br><span class="line">                &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">                    <span class="comment">// 异常拦截器</span></span><br><span class="line">                    ExceptionInterceptor exceptionInterceptor = <span class="keyword">new</span> ExceptionInterceptor() &#123;</span><br><span class="line">                        <span class="meta">@Override</span></span><br><span class="line">                        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">intercpt</span><span class="params">(Object proxy, Method method, Object[] args, Throwable throwable)</span> </span>&#123;</span><br><span class="line">                            <span class="comment">// ...</span></span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;;</span><br><span class="line">                &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">                    <span class="comment">// finally 后置拦截器</span></span><br><span class="line">                    FinallyInterceptor finallyInterceptor = <span class="keyword">new</span> TimeFinallyInterceptor(startTime, endTime);</span><br><span class="line">                    Long costTime = (Long) finallyInterceptor.finalize(proxy, method, args, result);</span><br><span class="line">                    System.out.println(<span class="string">&quot;echo方法执行时间: &quot;</span> + costTime);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">        &#125;);</span><br><span class="line">        EchoService echoService = (EchoService) proxy2;</span><br><span class="line">        echoService.echo(<span class="string">&quot;hello world&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">TimeFinallyInterceptor</span> <span class="keyword">implements</span> <span class="title">FinallyInterceptor</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> Long startTime;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> Long endTime;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">TimeFinallyInterceptor</span><span class="params">(Long startTime, Long endTime)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.startTime = startTime;</span><br><span class="line">        <span class="keyword">this</span>.endTime = endTime;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">finalize</span><span class="params">(Object proxy, Method method, Object[] args, Object returnResult)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> endTime - startTime;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Spring-AOP-功能概述"><a href="#Spring-AOP-功能概述" class="headerlink" title="Spring AOP 功能概述"></a>Spring AOP 功能概述</h2><p>核心特性：</p>
+<ul>
+<li>纯Java实现、无编译时特殊处理，不修改和控制ClassLoader</li>
+<li>仅支持方法级别的Join Points</li>
+<li>非完整AOP实现框架</li>
+<li>Spring IoC容器整合</li>
+<li>AspectJ注解驱动整合（非竞争关系）</li>
+</ul>
+<h2 id="Spring-AOP编程模型"><a href="#Spring-AOP编程模型" class="headerlink" title="Spring AOP编程模型"></a>Spring AOP编程模型</h2><p>Spring AOP编程模型也主要分为三种：注解驱动、XML配置驱动和底层API</p>
+<p>注解驱动：</p>
+<ul>
+<li>实现：Enable模块驱动，@EnableAspectJAutpProxy</li>
+<li>注解：<ul>
+<li>激活AspectJ自动代理：@EnableAspectJAutoProxy</li>
+<li>Aspect：@Aspect</li>
+<li>pointcut：@Pointcut</li>
+<li>Advice：@Before、@AfterReturning、@AfterThrowing、@After、@Around</li>
+<li>introduction：@DeclareParents</li>
+</ul>
+</li>
+</ul>
+<p>XML配置驱动：</p>
+<ul>
+<li>实现：Spring Extensble XML Authoring</li>
+<li>XML元素<ul>
+<li>激活AspectJ自动代理：&lt;aop:aspectj-autoproxy /&gt;</li>
+<li>配置：&lt;aop:config /&gt;</li>
+<li>Aspect：&lt;aop:aspect /&gt;</li>
+<li>Pointcut：&lt;aop:pointcut /&gt;</li>
+<li>Advice：&lt;aop:around /&gt;、&lt;aop:before /&gt;、&lt;aop:after-returning /&gt;、&lt;aop:after-throwing /&gt;和&lt;aop:after /&gt;</li>
+<li>introduction：&lt;aop:declare-parents /&gt;</li>
+<li>代理Scope：&lt;aop:scoped-proxy /&gt;</li>
+</ul>
+</li>
+</ul>
+<p>底层API：</p>
+<ul>
+<li><p>实现：JDK动态代理、CGLIB以及AspectJ</p>
+</li>
+<li><p>API：</p>
+<ul>
+<li>代理：AopProxy</li>
+<li>配置：ProxyConfig</li>
+<li>Join Point：JoinPoint</li>
+<li>Pointcut：Ponintcut</li>
+<li>Advice：Advice、BeforeAdvice、AfterAdvice、AfterReturningAdvice、ThrowsAdvice</li>
+</ul>
+</li>
+</ul>
+<h2 id="Spring-AOP-Advice类型"><a href="#Spring-AOP-Advice类型" class="headerlink" title="Spring AOP Advice类型"></a>Spring AOP Advice类型</h2><p>Advice类型：环绕（Around）、前置（Before）、后置（After）、异常（Exception），其中后置又包括了方法执行和finally执行两种。</p>
+<h2 id="Spring-AOP代理实现"><a href="#Spring-AOP代理实现" class="headerlink" title="Spring AOP代理实现"></a>Spring AOP代理实现</h2><p>Spring AOP的代理实现主要有三种：</p>
+<ul>
+<li>JDK动态代理实现 - 基于接口代理<ul>
+<li>org.springframework.aop.framework.JdkDynamicAopProxy</li>
+</ul>
+</li>
+<li>CGLIB动态代理实现 - 基于类代理（字节码提升）<ul>
+<li>org.springframework.aop.framework.CglibAopProxy</li>
+</ul>
+</li>
+<li>AspectJ适配实现<ul>
+<li>org.springframework.aop.aspectj.annotation.AspectJProxyFactory</li>
+</ul>
+</li>
+</ul>
+<p>无论是哪一种实现，都实现了AopProxy接口，并且实现类都是非public的。</p>
+<h2 id="JDK动态代理"><a href="#JDK动态代理" class="headerlink" title="JDK动态代理"></a>JDK动态代理</h2><p>为什么Proxy.newProxyInstance会生成新的字节码？</p>
+<p><img src="https://gitee.com/ji_yong_chao/blog-img/raw/master/img/20210714132854.png" alt="image-20210714132854720"></p>
+<p>JDK会操作字符数组，生成一个代理类的Class对象。</p>
+<h2 id="CGLIB动态代理"><a href="#CGLIB动态代理" class="headerlink" title="CGLIB动态代理"></a>CGLIB动态代理</h2><p>在Java中，面向对象通常而言指的是面向接口编程，或者也可以认为是面向锲约编程，JDK的动态代理会依赖于接口的定义，在没有定义接口的情况，还要实现AOP的功能，就需要CGLIB动态代理来实现。</p>
+<p>使用CGLIB动态代理的示例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CglibDynamicProxyDemo</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Enhancer enhancer = <span class="keyword">new</span> Enhancer();</span><br><span class="line">        <span class="comment">// 指定super Class = DefaultEchoService.class</span></span><br><span class="line">        Class&lt;DefaultEchoService&gt; superClass = DefaultEchoService.class;</span><br><span class="line">        enhancer.setSuperclass(superClass);</span><br><span class="line">        <span class="comment">// 指定拦截接口</span></span><br><span class="line">        enhancer.setInterfaces(<span class="keyword">new</span> Class[]&#123;EchoService.class&#125;);</span><br><span class="line">        enhancer.setCallback(<span class="keyword">new</span> MethodInterceptor() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> Object <span class="title">intercept</span><span class="params">(Object source, Method method, Object[] args, MethodProxy methodProxy)</span> <span class="keyword">throws</span> Throwable </span>&#123;</span><br><span class="line">                <span class="keyword">long</span> startTime = System.currentTimeMillis();</span><br><span class="line">                <span class="comment">// Source -&gt; CGLIB子类</span></span><br><span class="line">                <span class="comment">// 目标类 -&gt; DefaultEchoService</span></span><br><span class="line">                <span class="comment">// 错误使用</span></span><br><span class="line"><span class="comment">//                Object result = method.invoke(source, args);</span></span><br><span class="line">                Object result = methodProxy.invokeSuper(source, args);</span><br><span class="line">                <span class="keyword">long</span> costTime = System.currentTimeMillis() - startTime;</span><br><span class="line">                System.out.println(<span class="string">&quot;[CGLIB字节码提升]echo方法执行时间: &quot;</span> + costTime);</span><br><span class="line">                <span class="keyword">return</span> result;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">        <span class="comment">// 创建代理对象</span></span><br><span class="line">        EchoService echoService = (EchoService)enhancer.create();</span><br><span class="line">        <span class="comment">// 输出结果</span></span><br><span class="line">        System.out.println(echoService.echo(<span class="string">&quot;hello world&quot;</span>));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="AspectJ代理"><a href="#AspectJ代理" class="headerlink" title="AspectJ代理"></a>AspectJ代理</h2><p>借助于AspectJ强大的编译器，AspectJ有一套自己的语法，AspectJ的主要语法有：Aspect、Join Points、Pointcuts、Advice、introduction。</p>
+<p>在注解方面，Spring和AspectJ的注解名称是相同的，不过在具体处理的时候略有差异。</p>
+<h2 id="面试题"><a href="#面试题" class="headerlink" title="面试题"></a>面试题</h2><h3 id="Spring-AOP和AspectJ-AOP存在哪些差别？"><a href="#Spring-AOP和AspectJ-AOP存在哪些差别？" class="headerlink" title="Spring AOP和AspectJ AOP存在哪些差别？"></a>Spring AOP和AspectJ AOP存在哪些差别？</h3><ul>
+<li>Aspect是AOP完整实现，Spring AOP则是部分实现</li>
+<li>Spring AOP比AspectJ使用更简单</li>
+<li>Spring AOP整合AspectJ注解与Spring IoC容器</li>
+<li>Spring AOP仅支持基于代理模式的AOP</li>
+<li>Spring AOP仅支持方法级别的Pointcuts</li>
+</ul>
+<h1 id="Spring-AOP基础"><a href="#Spring-AOP基础" class="headerlink" title="Spring AOP基础"></a>Spring AOP基础</h1><h2 id="AspectJ注解驱动"><a href="#AspectJ注解驱动" class="headerlink" title="@AspectJ注解驱动"></a>@AspectJ注解驱动</h2><p>激活@AspectJ模块的方式：</p>
+<ul>
+<li>注解激活 - @EnableAspectJAutoProxy</li>
+<li>XML配置 - &lt;aop:aspectj-autoproxy /&gt;</li>
+</ul>
+<blockquote>
+<p>如果使用的是SpringBoot，直接引入相关依赖就会自动激活，无需上述操作。</p>
+</blockquote>
+<p>声明Aspect：</p>
+<ul>
+<li>@Aspect</li>
+</ul>
+<p>使用注解激活的示例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@Aspect</span> <span class="comment">// 声名为切面类</span></span><br><span class="line"><span class="meta">@EnableAspectJAutoProxy</span> <span class="comment">// 激活Aspect 注解自动代理</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AspectJAnnotationDemo</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        AnnotationConfigApplicationContext context = <span class="keyword">new</span> AnnotationConfigApplicationContext();</span><br><span class="line">        context.register(AspectJAnnotationDemo.class);</span><br><span class="line">        context.refresh();</span><br><span class="line">        AspectJAnnotationDemo aspectJAnnotationDemo = context.getBean(AspectJAnnotationDemo.class);</span><br><span class="line">        System.out.println(aspectJAnnotationDemo);</span><br><span class="line">        context.close();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>类似的，使用XML方式激活：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">beans</span> <span class="attr">xmlns</span>=<span class="string">&quot;http://www.springframework.org/schema/beans&quot;</span></span></span><br><span class="line"><span class="tag">       <span class="attr">xmlns:aop</span>=<span class="string">&quot;http://www.springframework.org/schema/aop&quot;</span></span></span><br><span class="line"><span class="tag">       <span class="attr">xmlns:xsi</span>=<span class="string">&quot;http://www.w3.org/2001/XMLSchema-instance&quot;</span></span></span><br><span class="line"><span class="tag">       <span class="attr">xsi:schemaLocation</span>=<span class="string">&quot;http://www.springframework.org/schema/beans</span></span></span><br><span class="line"><span class="string"><span class="tag">       http://www.springframework.org/schema/beans/spring-beans.xsd</span></span></span><br><span class="line"><span class="string"><span class="tag">       http://www.springframework.org/schema/aop</span></span></span><br><span class="line"><span class="string"><span class="tag">       http://www.springframework.org/schema/beans/spring-aop.xsd&quot;</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">aop:aspectj-autoproxy</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">beans</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>测试激活结果：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@Aspect</span> <span class="comment">// 声名为切面类</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AspectJXmlDemo</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        ClassPathXmlApplicationContext context = <span class="keyword">new</span> ClassPathXmlApplicationContext(<span class="string">&quot;classpath:/META-INF/spring-aop-context.xml&quot;</span>);</span><br><span class="line">        AspectJXmlDemo aspectJXmlDemo = context.getBean(AspectJXmlDemo.class);</span><br><span class="line">        System.out.println(aspectJXmlDemo);</span><br><span class="line">        context.close();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="编程方式创建-AspectJ代理"><a href="#编程方式创建-AspectJ代理" class="headerlink" title="编程方式创建@AspectJ代理"></a>编程方式创建@AspectJ代理</h2><p>实现类：org.springframework.aop.aspectj.annotation.AspectJProxyFactory</p>
+<p>使用的示例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AspectJAnnotationUsingAPIDemo</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 通过创建一个HashMap的缓存</span></span><br><span class="line">        Map&lt;String, Object&gt; cache = <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line">        <span class="comment">// 创建proxy</span></span><br><span class="line">        AspectJProxyFactory proxyFactory = <span class="keyword">new</span> AspectJProxyFactory();</span><br><span class="line">        <span class="comment">// 增加Aspect 配置类</span></span><br><span class="line">        proxyFactory.addAspect(AspectConfiguration.class);</span><br><span class="line"></span><br><span class="line">        proxyFactory.addAdvice(<span class="keyword">new</span> MethodBeforeAdvice() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">before</span><span class="params">(Method method, Object[] args, Object target)</span> <span class="keyword">throws</span> Throwable </span>&#123;</span><br><span class="line">                <span class="keyword">if</span> (<span class="string">&quot;put&quot;</span>.equals(method.getName()) &amp;&amp; args.length == <span class="number">2</span>) &#123;</span><br><span class="line">                    System.out.printf(<span class="string">&quot;当前存放是key：%s，value：%s \n&quot;</span>, args[<span class="number">0</span>], args[<span class="number">1</span>]);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">        <span class="comment">// 直接存储</span></span><br><span class="line"><span class="comment">//        cache.put(&quot;1&quot;, &quot;A&quot;);</span></span><br><span class="line">        <span class="comment">// 通过代理对象存储</span></span><br><span class="line">        Map&lt;String, Object&gt; proxy = proxyFactory.getProxy();</span><br><span class="line">        proxy.put(<span class="string">&quot;1&quot;</span>, <span class="string">&quot;A&quot;</span>);</span><br><span class="line">        System.out.println(cache.get(<span class="string">&quot;1&quot;</span>));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="标准工厂API"><a href="#标准工厂API" class="headerlink" title="标准工厂API"></a>标准工厂API</h2><p>实现类：org.springframework.aop.framework.ProxyFactory</p>
+<p>相关的示例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ProxyFactoryDemo</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        DefaultEchoService defaultEchoService = <span class="keyword">new</span> DefaultEchoService();</span><br><span class="line">        <span class="comment">// 注入目标对象（被代理）</span></span><br><span class="line">        ProxyFactory proxyFactory = <span class="keyword">new</span> ProxyFactory(defaultEchoService);</span><br><span class="line">        <span class="comment">// 如果对象存在接口的话，生成的代理对象还是JDK动态代理的</span></span><br><span class="line">        proxyFactory.setTarget(DefaultEchoService.class);</span><br><span class="line">        <span class="comment">// 添加Advice</span></span><br><span class="line">        proxyFactory.addAdvice(<span class="keyword">new</span> EchoServiceMethodInterceptor());</span><br><span class="line">        <span class="comment">// 获取代理对象</span></span><br><span class="line">        EchoService echoService = (EchoService)proxyFactory.getProxy();</span><br><span class="line">        System.out.println(echoService.echo(<span class="string">&quot;hello world&quot;</span>));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="AspectJ-Pointcut指令与表达式"><a href="#AspectJ-Pointcut指令与表达式" class="headerlink" title="@AspectJ Pointcut指令与表达式"></a>@AspectJ Pointcut指令与表达式</h2><p>支持的指令：execution、within、this、target、args。</p>
+<blockquote>
+<p>pointcut只是用来筛选，而不会执行具体的动作，具体的动作由advice来执行，并且是一对多的关系。在Spring当中，pointcut的名称就是对应方法的名称。</p>
+</blockquote>
+<p>首先完善之前的Aspect的配置类：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Aspect</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AspectConfiguration</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Pointcut(&quot;execution(public * *(..))&quot;)</span>  <span class="comment">// 匹配Join Point</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">anyPublicMethod</span><span class="params">()</span> </span>&#123; <span class="comment">// 方法名即Pointcut名称</span></span><br><span class="line">        System.out.println(<span class="string">&quot;@Pointcut at any public method&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Before(&quot;anyPublicMethod()&quot;)</span> <span class="comment">// Join Point拦截动作</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">beforeAnyPublicMethod</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;@Before any public method.&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>观察配置类的起的作用：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@EnableAspectJAutoProxy</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AspectJAnnotatedPointcutDemo</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        AnnotationConfigApplicationContext context = <span class="keyword">new</span> AnnotationConfigApplicationContext();</span><br><span class="line">        context.register(AspectJAnnotatedPointcutDemo.class, AspectConfiguration.class);</span><br><span class="line">        context.refresh();</span><br><span class="line">        AspectJAnnotatedPointcutDemo aspectJAnnotationDemo = context.getBean(AspectJAnnotatedPointcutDemo.class);</span><br><span class="line">        aspectJAnnotationDemo.execute();</span><br><span class="line">        context.close();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">execute</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;execute()...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到Pointcut对应的方法并没有被执行，这也验证了我们前面的结论。通常情况下，我们会将这个Pointcut声明的方法定义为private，并且方法当中没有实现，然后再advice当中引用。</p>
+<h2 id="XML配置Pointcut"><a href="#XML配置Pointcut" class="headerlink" title="XML配置Pointcut"></a>XML配置Pointcut</h2><p>XML配置的方式：&lt;aop:pointcut /&gt;</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">beans</span></span></span><br><span class="line"><span class="tag">        <span class="attr">xmlns</span>=<span class="string">&quot;http://www.springframework.org/schema/beans&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">xmlns:aop</span>=<span class="string">&quot;http://www.springframework.org/schema/aop&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">xmlns:context</span>=<span class="string">&quot;http://www.springframework.org/schema/context&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">xmlns:xsi</span>=<span class="string">&quot;http://www.w3.org/2001/XMLSchema-instance&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">xsi:schemaLocation</span>=<span class="string">&quot;http://www.springframework.org/schema/beans</span></span></span><br><span class="line"><span class="string"><span class="tag">        https://www.springframework.org/schema/beans/spring-beans.xsd</span></span></span><br><span class="line"><span class="string"><span class="tag">        http://www.springframework.org/schema/aop</span></span></span><br><span class="line"><span class="string"><span class="tag">        https://www.springframework.org/schema/aop/spring-aop.xsd</span></span></span><br><span class="line"><span class="string"><span class="tag">        http://www.springframework.org/schema/context</span></span></span><br><span class="line"><span class="string"><span class="tag">        https://www.springframework.org/schema/context/spring-context.xsd&quot;</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">aop:aspectj-autoproxy</span>/&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">&quot;aspectXmlConfig&quot;</span> <span class="attr">class</span>=<span class="string">&quot;org.jyc.thinking.in.spring.aop.features.aspect.AspectXmlConfiguration&quot;</span>/&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">aop:config</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">aop:aspect</span> <span class="attr">id</span>=<span class="string">&quot;AspectXmlConfig&quot;</span> <span class="attr">ref</span>=<span class="string">&quot;aspectXmlConfig&quot;</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">aop:pointcut</span> <span class="attr">id</span>=<span class="string">&quot;anyPublicMethod&quot;</span> <span class="attr">expression</span>=<span class="string">&quot;execution(public * *(..))&quot;</span>/&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">aop:before</span> <span class="attr">method</span>=<span class="string">&quot;beforeAnyPublicMethod&quot;</span> <span class="attr">pointcut-ref</span>=<span class="string">&quot;anyPublicMethod&quot;</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">aop:aspect</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">aop:config</span>&gt;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">&quot;echoService&quot;</span> <span class="attr">class</span>=<span class="string">&quot;org.jyc.thinking.in.spring.aop.overview.DefaultEchoService&quot;</span>/&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">beans</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>观察使用XML方式来实现Pointcut：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AspectJSchemaBasedPointcutDemo</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        ClassPathXmlApplicationContext context = <span class="keyword">new</span> ClassPathXmlApplicationContext(<span class="string">&quot;classpath:/META-INF/spring-aop-context.xml&quot;</span>);</span><br><span class="line">        context.refresh();</span><br><span class="line">        EchoService echoService = context.getBean(EchoService.class);</span><br><span class="line">        System.out.println(echoService.echo(<span class="string">&quot;hello world&quot;</span>));</span><br><span class="line">        context.close();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>使用注解能够实现的，XML方式也都能实现。</p>
+<h2 id="API实现Pointcut"><a href="#API实现Pointcut" class="headerlink" title="API实现Pointcut"></a>API实现Pointcut</h2><p>核心API - org.springframework.aop.Pointcut，其中有两个方法：</p>
+<ul>
+<li>org.springframework.aop.ClassFilter</li>
+<li>org.springframework.aop.MethodMatcher</li>
+</ul>
+<p>适配实现 - DefaultPointcutAdvisor</p>
+<p>相关的示例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">PointcutApiDemo</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        EchoServicePointcut pointcut = <span class="keyword">new</span> EchoServicePointcut(<span class="string">&quot;echo&quot;</span>, EchoService.class);</span><br><span class="line">        <span class="comment">// 将Pointcut适配成Advisor</span></span><br><span class="line">        DefaultPointcutAdvisor advisor = <span class="keyword">new</span> DefaultPointcutAdvisor(pointcut, <span class="keyword">new</span> EchoServiceMethodInterceptor());</span><br><span class="line">        DefaultEchoService defaultEchoService = <span class="keyword">new</span> DefaultEchoService();</span><br><span class="line">        ProxyFactory proxyFactory = <span class="keyword">new</span> ProxyFactory(defaultEchoService);</span><br><span class="line">        <span class="comment">// 添加Advisor</span></span><br><span class="line">        proxyFactory.addAdvisor(advisor);</span><br><span class="line">        EchoService echoService = (EchoService) proxyFactory.getProxy();</span><br><span class="line">        System.out.println(echoService.echo(<span class="string">&quot;hello world&quot;</span>));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里要注意的是，不能直接创建Pointcut对象，而是要通过适配的方式间接实现。</p>
+<h2 id="AspectJ拦截动作"><a href="#AspectJ拦截动作" class="headerlink" title="@AspectJ拦截动作"></a>@AspectJ拦截动作</h2><p>@Around 与@Before有什么区别呢？</p>
+<p>首先我们在AspectConfiguration中定义一个@Around：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Around(&quot;anyPublicMethod()&quot;)</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">aroundAnyPublicMethod</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    System.out.println(<span class="string">&quot;@Around any public method.&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>运行时会发现，除了这行输出外没有其他任何信息，修改这个方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Around(&quot;anyPublicMethod()&quot;)</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> Object <span class="title">aroundAnyPublicMethod</span><span class="params">(ProceedingJoinPoint pjp)</span> <span class="keyword">throws</span> Throwable</span>&#123;</span><br><span class="line">    System.out.println(<span class="string">&quot;@Around any public method.&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> pjp.proceed();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到所有的信息均已成功打印，这是因为，@Around需要去显式的触发目标方法的区别，而@Before则不用。</p>
+<h2 id="XML配置Around-Advice"><a href="#XML配置Around-Advice" class="headerlink" title="XML配置Around Advice"></a>XML配置Around Advice</h2><p>XML配置方式：&lt;aop:around /&gt;</p>
+<p>类似的，我们将之前的aroundAnyPublicMethod方法添加到AspectXmlConfiguration，然后在XML中配置</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">aop:around</span> <span class="attr">method</span>=<span class="string">&quot;aroundAnyPublicMethod&quot;</span> <span class="attr">pointcut-ref</span>=<span class="string">&quot;anyPublicMethod&quot;</span>/&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="AspectJ的前置动作"><a href="#AspectJ的前置动作" class="headerlink" title="@AspectJ的前置动作"></a>@AspectJ的前置动作</h2><p>Before Advice注解 - org.aspectj.lang.annotation.Before</p>
+<p>@Before与@Around谁优先执行？</p>
+<p>通过输出结果可以观察到，@Around先于@Before执行，这也是为什么Spring API里面没有提供@Around的Advice接口，因为它实际上都是通过拦截模式来操作的，只是@Before和@After以及@Around是不同的实现，所以不需要每一个单独有一个接口。</p>
+<p>如果有多个@Before声明后，如何控制它们的顺序呢？答案是可以通过实现org.springframework.core.Ordered接口，或者使用@Order注解。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Aspect</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AspectConfiguration2</span> <span class="keyword">implements</span> <span class="title">Ordered</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Pointcut(&quot;execution(public * *(..))&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">anyPublicMethod</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Before(&quot;anyPublicMethod()&quot;)</span> <span class="comment">// Join Point拦截动作</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">beforeAnyPublicMethod2</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;@Before any public method.(2)&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getOrder</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个时候程序执行的顺序就发生了变化，beforeAnyPublicMethod2优先于@Around方法执行了。要注意的是，这里不能定义最高优先级HIGHEST_PRECEDENCE。</p>
+<h2 id="XML配置Before-Advice"><a href="#XML配置Before-Advice" class="headerlink" title="XML配置Before Advice"></a>XML配置Before Advice</h2><p>XML元素的标签 - &lt;aop:before &gt;</p>
+<ul>
+<li><p>声明规则</p>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">aop:config</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">aop:aspect</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">aop:before</span>&gt;</span></span><br></pre></td></tr></table></figure></li>
+<li><p>属性设置（来源于Spring AOP Schema类型basicAdviceType）</p>
+<ul>
+<li>pointcut：Pointcut表达式内容</li>
+<li>pointcut-ref：Pointcut表达式名称</li>
+</ul>
+<h2 id="API实现Before-Advice"><a href="#API实现Before-Advice" class="headerlink" title="API实现Before Advice"></a>API实现Before Advice</h2></li>
+</ul>
+<p> 核心接口 - org.springframework.aop.BeforeAdvice</p>
+<ul>
+<li>类型：标记接口，与org.aopalliance.aop.Advice类似</li>
+<li>方法JoinPoint扩展 - org.springframework.aop.MethodBeforeAdvice</li>
+<li>接收对象 - org.springframework.aop.framework.AdvisedSupport<ul>
+<li>基础实现类 - org.springframework.aop.framework.ProxyCreatorSupport<ul>
+<li>常见实现类：<ul>
+<li>org.springframework.aop.framework.ProxyFactory</li>
+<li>org.springframework.aop.framework.ProxyFactoryBean</li>
+<li>org.springframework.aop.aspectj.annotation.AspectJProxyFactory</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="Aspect后置动作"><a href="#Aspect后置动作" class="headerlink" title="@Aspect后置动作"></a>@Aspect后置动作</h2><p>After Advice注解：</p>
+<ul>
+<li>方法返回后：@org.aspectj.lang.annotation.AfterReturning</li>
+<li>异常发生后：@org.aspectj.lang.annotation.AfterThrowing</li>
+<li>finally执行：org.aspectj.lang.annotation.After</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@After(&quot;anyPublicMethod()&quot;)</span></span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">finalizeAnyPublicMethod</span><span class="params">()</span> </span>&#123;</span><br><span class="line">       System.out.println(<span class="string">&quot;@After any public method.&quot;</span>);</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="meta">@AfterReturning(&quot;anyPublicMethod()&quot;)</span></span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">afterAnyPublicMethod</span><span class="params">()</span> </span>&#123;</span><br><span class="line">       System.out.println(<span class="string">&quot;@AfterReturning any public method.&quot;</span>);</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="meta">@AfterThrowing(&quot;anyPublicMethod()&quot;)</span></span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">afterThrowingAnyPublicMethod</span><span class="params">()</span> </span>&#123;</span><br><span class="line">       System.out.println(<span class="string">&quot;@AfterThrowing any public method.&quot;</span>);</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+<p>其中@After方法会最后会被执行， @AfterThrowing会在方法抛出异常的时候执行。</p>
+<h2 id="XML配置After-Advice"><a href="#XML配置After-Advice" class="headerlink" title="XML配置After Advice"></a>XML配置After Advice</h2><p>XML元素 - &lt;aop:after &gt;</p>
+<ul>
+<li><p>声明规则</p>
+  <figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">aop:config</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">aop:aspect</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">aop:after</span>&gt;</span></span><br></pre></td></tr></table></figure></li>
+<li><p>属性设置（来源于Spring AOP Schema类型 basicAdviceType）</p>
+<ul>
+<li>pointcut：Pointcut表达式内容</li>
+<li>pointcut-ref：Pointcut表达式名称</li>
+</ul>
+</li>
+</ul>
+<p> 配置示例：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">aop:after</span> <span class="attr">method</span>=<span class="string">&quot;finalizeAnyPublicMethod&quot;</span> <span class="attr">pointcut-ref</span>=<span class="string">&quot;anyPublicMethod&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">aop:after-returning</span> <span class="attr">method</span>=<span class="string">&quot;afterAnyPublicMethod&quot;</span> <span class="attr">pointcut-ref</span>=<span class="string">&quot;anyPublicMethod&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">aop:after-throwing</span> <span class="attr">method</span>=<span class="string">&quot;afterThrowingAnyPublicMethod&quot;</span> <span class="attr">pointcut-ref</span>=<span class="string">&quot;anyPublicMethod&quot;</span>/&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="API实现After-Advice"><a href="#API实现After-Advice" class="headerlink" title="API实现After Advice"></a>API实现After Advice</h2><p>核心接口 - org.springframework.aop.AfterAdvice</p>
+<ul>
+<li>类型：标记接口，与org.aopalliance.aop.Advice类似</li>
+<li>扩展<ul>
+<li>org.springframework.aop.AfterReturningAdvice</li>
+<li>org.springframework.aop.ThrowsAdvice</li>
+</ul>
+</li>
+<li>接收对象 - org.springframework.aop.framework.AdvisedSupport<ul>
+<li>基础实现类 - org.springframework.aop.framework.ProxyCreatorSupport<ul>
+<li>常见实现类<ul>
+<li>org.springframework.aop.framework.ProxyFactory</li>
+<li>org.springframework.aop.framework.ProxyFactoryBean</li>
+<li>org.springframework.aop.aspectj.annotation.AspectJProxyFactory</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>相关的示例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">proxyFactory.addAdvice(<span class="keyword">new</span> AfterReturningAdvice() &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">afterReturning</span><span class="params">(Object returnValue, Method method, Object[] args, Object target)</span> <span class="keyword">throws</span> Throwable </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="string">&quot;put&quot;</span>.equals(method.getName()) &amp;&amp; args.length == <span class="number">2</span>) &#123;</span><br><span class="line">            System.out.printf(<span class="string">&quot;[AfterReturningAdvice]当前存放是key：%s，新存放的value：%s \n,之前关联的Value：%s&quot;</span>,</span><br><span class="line">                              args[<span class="number">0</span>], <span class="comment">// key</span></span><br><span class="line">                              args[<span class="number">1</span>], <span class="comment">// new value</span></span><br><span class="line">                              returnValue <span class="comment">// old value</span></span><br><span class="line">                             );</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<h2 id="自动动态代理"><a href="#自动动态代理" class="headerlink" title="自动动态代理"></a>自动动态代理</h2><p>代表实现</p>
+<ul>
+<li>org.springframework.aop.framework.autoproxy.BeanNameAutoProxyCreator</li>
+<li>org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator</li>
+<li>org.springframework.aop.aspectj.annotation.AnnotationAwareAspectJAutoProxyCreator</li>
+</ul>
+<h2 id="替换TargetSource"><a href="#替换TargetSource" class="headerlink" title="替换TargetSource"></a>替换TargetSource</h2><p>TargetSource（目标源）是被代理的target（目标对象）实例的来源。TargetSource被用于获取当前MethodInvocation（方法调用）所需要的目标对象target。换句话说，proxy代理的并不是target，而是targetSource对象。</p>
+<p>通常情况下，一个代理对象只能代理一个target，每次方法调用目标也是唯一的target。但是如果让proxy代理TargetSource，可以使得每次方法调用的target实例都不相同。采用这种机制，可以使得方法的调用更加灵活。</p>
+<p>代表实现：</p>
+<ul>
+<li>org.springframework.aop.target.HotSwappableTargetSource</li>
+<li>org.springframework.aop.target.AbstractPoolingTargetSource</li>
+<li>org.springframework.aop.target.PrototypeTargetSource</li>
+<li>org.springframework.aop.target.ThreadLocalTargetSource</li>
+<li>org.springframework.aop.target.SingletonTargetSource</li>
+</ul>
+<h2 id="面试题-1"><a href="#面试题-1" class="headerlink" title="面试题"></a>面试题</h2><h3 id="Spring-AOP支持哪些类型的Advice？"><a href="#Spring-AOP支持哪些类型的Advice？" class="headerlink" title="Spring AOP支持哪些类型的Advice？"></a>Spring AOP支持哪些类型的Advice？</h3><ul>
+<li>Around Advice</li>
+<li>Before Advice</li>
+<li>After Advice<ul>
+<li>After</li>
+<li>AfterReturning</li>
+<li>AfterThrowing</li>
+</ul>
+</li>
+</ul>
+<h3 id="Spring-AOP编程模型有哪些，代表组件有哪些？"><a href="#Spring-AOP编程模型有哪些，代表组件有哪些？" class="headerlink" title="Spring AOP编程模型有哪些，代表组件有哪些？"></a>Spring AOP编程模型有哪些，代表组件有哪些？</h3><p>注解驱动：解释和整合AspectJ注解，如@EnableAspectJAutoProxy</p>
+<p>XML配置：AOP与IoC Schema-Based相结合</p>
+<p>API编程：如JoinPoint、Pointcut、Advice和ProxyFactory等</p>
+<h3 id="Spring-AOP三种实现方式是如何进行设计的？"><a href="#Spring-AOP三种实现方式是如何进行设计的？" class="headerlink" title="Spring AOP三种实现方式是如何进行设计的？"></a>Spring AOP三种实现方式是如何进行设计的？</h3><p>// …</p>
+<h1 id="Spring-AOP设计与实现"><a href="#Spring-AOP设计与实现" class="headerlink" title="Spring AOP设计与实现"></a>Spring AOP设计与实现</h1><h2 id="API整体设计"><a href="#API整体设计" class="headerlink" title="API整体设计"></a>API整体设计</h2>
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div>感谢您的支持！</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.jpg" alt="吉永超 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>吉永超
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://jycoder.club/2021/06/29/Spring-AOP/" title="Spring AOP">https://jycoder.club/2021/06/29/Spring-AOP/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Spring/" rel="tag"># Spring</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/06/24/leetcode/" rel="prev" title="leetcode in Java">
+      <i class="fa fa-chevron-left"></i> leetcode in Java
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Spring-AOP%E6%80%BB%E8%A7%88"><span class="nav-number">1.</span> <span class="nav-text">Spring AOP总览</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9F%A5%E8%AF%86%E5%82%A8%E5%A4%87"><span class="nav-number">1.1.</span> <span class="nav-text">知识储备</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Java-%E5%9F%BA%E7%A1%80%E9%83%A8%E5%88%86"><span class="nav-number">1.1.1.</span> <span class="nav-text">Java 基础部分</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#OOP-%E9%83%A8%E5%88%86"><span class="nav-number">1.1.2.</span> <span class="nav-text">OOP 部分</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#GOF23-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F"><span class="nav-number">1.1.3.</span> <span class="nav-text">GOF23 设计模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Spring-%E6%A0%B8%E5%BF%83%E5%9F%BA%E7%A1%80"><span class="nav-number">1.1.4.</span> <span class="nav-text">Spring 核心基础</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#OOP%E5%B1%80%E9%99%90%E6%80%A7"><span class="nav-number">1.2.</span> <span class="nav-text">OOP局限性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AOP%E5%B8%B8%E8%A7%81%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="nav-number">1.3.</span> <span class="nav-text">AOP常见使用场景</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%97%A5%E5%BF%97%E5%9C%BA%E6%99%AF"><span class="nav-number">1.3.1.</span> <span class="nav-text">日志场景</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%9F%E8%AE%A1%E5%9C%BA%E6%99%AF"><span class="nav-number">1.3.2.</span> <span class="nav-text">统计场景</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E9%98%B2%E5%9C%BA%E6%99%AF"><span class="nav-number">1.3.3.</span> <span class="nav-text">安防场景</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%80%A7%E8%83%BD%E5%9C%BA%E6%99%AF"><span class="nav-number">1.3.4.</span> <span class="nav-text">性能场景</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AOP%E6%A6%82%E5%BF%B5"><span class="nav-number">1.4.</span> <span class="nav-text">AOP概念</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Java-AOP%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F"><span class="nav-number">1.5.</span> <span class="nav-text">Java AOP设计模式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%A3%E7%90%86%E6%A8%A1%E5%BC%8F"><span class="nav-number">1.6.</span> <span class="nav-text">代理模式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%A4%E6%96%AD%E6%A8%A1%E5%BC%8F"><span class="nav-number">1.7.</span> <span class="nav-text">判断模式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8B%A6%E6%88%AA%E6%A8%A1%E5%BC%8F"><span class="nav-number">1.8.</span> <span class="nav-text">拦截模式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Spring-AOP-%E5%8A%9F%E8%83%BD%E6%A6%82%E8%BF%B0"><span class="nav-number">1.9.</span> <span class="nav-text">Spring AOP 功能概述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Spring-AOP%E7%BC%96%E7%A8%8B%E6%A8%A1%E5%9E%8B"><span class="nav-number">1.10.</span> <span class="nav-text">Spring AOP编程模型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Spring-AOP-Advice%E7%B1%BB%E5%9E%8B"><span class="nav-number">1.11.</span> <span class="nav-text">Spring AOP Advice类型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Spring-AOP%E4%BB%A3%E7%90%86%E5%AE%9E%E7%8E%B0"><span class="nav-number">1.12.</span> <span class="nav-text">Spring AOP代理实现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#JDK%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86"><span class="nav-number">1.13.</span> <span class="nav-text">JDK动态代理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CGLIB%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86"><span class="nav-number">1.14.</span> <span class="nav-text">CGLIB动态代理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AspectJ%E4%BB%A3%E7%90%86"><span class="nav-number">1.15.</span> <span class="nav-text">AspectJ代理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%9D%A2%E8%AF%95%E9%A2%98"><span class="nav-number">1.16.</span> <span class="nav-text">面试题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Spring-AOP%E5%92%8CAspectJ-AOP%E5%AD%98%E5%9C%A8%E5%93%AA%E4%BA%9B%E5%B7%AE%E5%88%AB%EF%BC%9F"><span class="nav-number">1.16.1.</span> <span class="nav-text">Spring AOP和AspectJ AOP存在哪些差别？</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Spring-AOP%E5%9F%BA%E7%A1%80"><span class="nav-number">2.</span> <span class="nav-text">Spring AOP基础</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#AspectJ%E6%B3%A8%E8%A7%A3%E9%A9%B1%E5%8A%A8"><span class="nav-number">2.1.</span> <span class="nav-text">@AspectJ注解驱动</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BC%96%E7%A8%8B%E6%96%B9%E5%BC%8F%E5%88%9B%E5%BB%BA-AspectJ%E4%BB%A3%E7%90%86"><span class="nav-number">2.2.</span> <span class="nav-text">编程方式创建@AspectJ代理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A0%87%E5%87%86%E5%B7%A5%E5%8E%82API"><span class="nav-number">2.3.</span> <span class="nav-text">标准工厂API</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AspectJ-Pointcut%E6%8C%87%E4%BB%A4%E4%B8%8E%E8%A1%A8%E8%BE%BE%E5%BC%8F"><span class="nav-number">2.4.</span> <span class="nav-text">@AspectJ Pointcut指令与表达式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#XML%E9%85%8D%E7%BD%AEPointcut"><span class="nav-number">2.5.</span> <span class="nav-text">XML配置Pointcut</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#API%E5%AE%9E%E7%8E%B0Pointcut"><span class="nav-number">2.6.</span> <span class="nav-text">API实现Pointcut</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AspectJ%E6%8B%A6%E6%88%AA%E5%8A%A8%E4%BD%9C"><span class="nav-number">2.7.</span> <span class="nav-text">@AspectJ拦截动作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#XML%E9%85%8D%E7%BD%AEAround-Advice"><span class="nav-number">2.8.</span> <span class="nav-text">XML配置Around Advice</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AspectJ%E7%9A%84%E5%89%8D%E7%BD%AE%E5%8A%A8%E4%BD%9C"><span class="nav-number">2.9.</span> <span class="nav-text">@AspectJ的前置动作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#XML%E9%85%8D%E7%BD%AEBefore-Advice"><span class="nav-number">2.10.</span> <span class="nav-text">XML配置Before Advice</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#API%E5%AE%9E%E7%8E%B0Before-Advice"><span class="nav-number">2.11.</span> <span class="nav-text">API实现Before Advice</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Aspect%E5%90%8E%E7%BD%AE%E5%8A%A8%E4%BD%9C"><span class="nav-number">2.12.</span> <span class="nav-text">@Aspect后置动作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#XML%E9%85%8D%E7%BD%AEAfter-Advice"><span class="nav-number">2.13.</span> <span class="nav-text">XML配置After Advice</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#API%E5%AE%9E%E7%8E%B0After-Advice"><span class="nav-number">2.14.</span> <span class="nav-text">API实现After Advice</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%87%AA%E5%8A%A8%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86"><span class="nav-number">2.15.</span> <span class="nav-text">自动动态代理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9B%BF%E6%8D%A2TargetSource"><span class="nav-number">2.16.</span> <span class="nav-text">替换TargetSource</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%9D%A2%E8%AF%95%E9%A2%98-1"><span class="nav-number">2.17.</span> <span class="nav-text">面试题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Spring-AOP%E6%94%AF%E6%8C%81%E5%93%AA%E4%BA%9B%E7%B1%BB%E5%9E%8B%E7%9A%84Advice%EF%BC%9F"><span class="nav-number">2.17.1.</span> <span class="nav-text">Spring AOP支持哪些类型的Advice？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Spring-AOP%E7%BC%96%E7%A8%8B%E6%A8%A1%E5%9E%8B%E6%9C%89%E5%93%AA%E4%BA%9B%EF%BC%8C%E4%BB%A3%E8%A1%A8%E7%BB%84%E4%BB%B6%E6%9C%89%E5%93%AA%E4%BA%9B%EF%BC%9F"><span class="nav-number">2.17.2.</span> <span class="nav-text">Spring AOP编程模型有哪些，代表组件有哪些？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Spring-AOP%E4%B8%89%E7%A7%8D%E5%AE%9E%E7%8E%B0%E6%96%B9%E5%BC%8F%E6%98%AF%E5%A6%82%E4%BD%95%E8%BF%9B%E8%A1%8C%E8%AE%BE%E8%AE%A1%E7%9A%84%EF%BC%9F"><span class="nav-number">2.17.3.</span> <span class="nav-text">Spring AOP三种实现方式是如何进行设计的？</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Spring-AOP%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0"><span class="nav-number">3.</span> <span class="nav-text">Spring AOP设计与实现</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#API%E6%95%B4%E4%BD%93%E8%AE%BE%E8%AE%A1"><span class="nav-number">3.1.</span> <span class="nav-text">API整体设计</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">吉永超</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="mailto:jyccoder@gmail.com" title="E-Mail → mailto:jyccoder@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">吉永超</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">710k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">10:46</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var canonicalURL, curProtocol;
+      //Get the <link> tag
+      var x=document.getElementsByTagName("link");
+		//Find the last canonical URL
+		if(x.length > 0){
+			for (i=0;i<x.length;i++){
+				if(x[i].rel.toLowerCase() == 'canonical' && x[i].href){
+					canonicalURL=x[i].href;
+				}
+			}
+		}
+    //Get protocol
+	    if (!canonicalURL){
+	    	curProtocol = window.location.protocol.split(':')[0];
+	    }
+	    else{
+	    	curProtocol = canonicalURL.split(':')[0];
+	    }
+      //Get current URL if the canonical URL does not exist
+	    if (!canonicalURL) canonicalURL = window.location.href;
+	    //Assign script content. Replace current URL with the canonical URL
+      !function(){var e=/([http|https]:\/\/[a-zA-Z0-9\_\.]+\.baidu\.com)/gi,r=canonicalURL,t=document.referrer;if(!e.test(r)){var n=(String(curProtocol).toLowerCase() === 'https')?"https://sp0.baidu.com/9_Q4simg2RQJ8t7jm9iCKT-xh_/s.gif":"//api.share.baidu.com/s.gif";t?(n+="?r="+encodeURIComponent(document.referrer),r&&(n+="&l="+r)):r&&(n+="?l="+r);var i=new Image;i.src=n}}(window);})();
+  </script>
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
